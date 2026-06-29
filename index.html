@@ -5,42 +5,205 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClickNegocio - Sistema de Control</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; user-select: none; }
-        .header { background-color: #2c3e50; color: white; padding: 15px; text-align: center; position: relative; }
-        .logout-btn { position: absolute; right: 20px; top: 25px; background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; display: none; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        /* Variables de color basadas en el logo (Cyan, Naranja, Azul oscuro) */
+        :root {
+            --bg-dark: #0a0f16;
+            --panel-bg: #141c26;
+            --cyan-neon: #2fe2e3;
+            --orange-neon: #e08a46;
+            --text-main: #ffffff;
+            --text-muted: #a0aec0;
+            --input-bg: #1e293b;
+            --danger: #ff4d4d;
+            --success: #00e676;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            background-color: var(--bg-dark); 
+            color: var(--text-main);
+            margin: 0; 
+            padding: 0; 
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* Animaciones */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px rgba(47, 226, 227, 0.2), 0 0 20px rgba(224, 138, 70, 0.2); }
+            50% { box-shadow: 0 0 20px rgba(47, 226, 227, 0.6), 0 0 40px rgba(224, 138, 70, 0.6); }
+            100% { box-shadow: 0 0 10px rgba(47, 226, 227, 0.2), 0 0 20px rgba(224, 138, 70, 0.2); }
+        }
+
+        /* Cabecera y Logo */
+        .header { 
+            background: linear-gradient(180deg, #101822 0%, var(--bg-dark) 100%);
+            padding: 30px 15px 15px; 
+            text-align: center; 
+            position: relative; 
+            border-bottom: 1px solid rgba(47, 226, 227, 0.1);
+        }
+        
+        .logo-img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            animation: pulseGlow 3s infinite ease-in-out;
+            margin-bottom: 10px;
+        }
+
+        .header h1 {
+            margin: 10px 0 5px;
+            font-size: 28px;
+            font-weight: 700;
+            background: -webkit-linear-gradient(0deg, var(--cyan-neon), var(--orange-neon));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #sub-header { color: var(--text-muted); font-size: 14px; margin-top: 0; }
+
+        .logout-btn { 
+            position: absolute; 
+            right: 20px; 
+            top: 30px; 
+            background: var(--danger); 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 25px; /* Estilo Android */
+            cursor: pointer; 
+            display: none; 
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+            transition: all 0.3s ease;
+        }
+        .logout-btn:hover { background: #ff3333; transform: scale(1.05); }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
         
         /* Pantalla de Login */
-        .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        .login-box { 
+            max-width: 380px; 
+            margin: 60px auto; 
+            background: var(--panel-bg); 
+            padding: 40px 30px; 
+            border-radius: 25px; /* Estilo Android */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 15px rgba(47, 226, 227, 0.1); 
+            text-align: center; 
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .login-box h2 { margin-top: 0; color: var(--text-main); font-weight: 600; }
         
-        /* Paneles (Ocultos por defecto) */
+        /* Paneles */
         .screen { display: none; }
-        .active-screen { display: block; }
+        .active-screen { display: block; animation: fadeIn 0.5s ease-out forwards; }
         
-        /* Estilos de Formularios y Tablas */
-        .panel-block { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
-        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
-        button:hover { background-color: #2980b9; }
-        button.btn-danger { background-color: #e74c3c; }
-        button.btn-danger:hover { background-color: #c0392b; }
-        button.btn-success { background-color: #27ae60; }
-        button.btn-success:hover { background-color: #219150; }
+        /* Estilos de Formularios y Bloques */
+        .panel-block { 
+            background: var(--panel-bg); 
+            padding: 25px; 
+            border-radius: 20px; /* Estilo Android */
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3); 
+            margin-bottom: 25px; 
+            border: 1px solid rgba(255,255,255,0.05);
+            animation: fadeIn 0.6s ease-out forwards;
+        }
+        .panel-block h2 { margin-top: 0; font-size: 20px; color: var(--cyan-neon); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;}
         
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background-color: #f2f2f2; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
         
-        .status-activo { color: #27ae60; font-weight: bold; }
-        .status-bloqueado { color: #e74c3c; font-weight: bold; }
+        input, textarea, select { 
+            width: 100%; 
+            padding: 14px 15px; 
+            background-color: var(--input-bg);
+            color: var(--text-main);
+            border: 1px solid transparent; 
+            border-radius: 15px; /* Estilo Android Soft */
+            box-sizing: border-box; 
+            font-size: 15px;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        input:focus, textarea:focus {
+            border-color: var(--cyan-neon);
+            box-shadow: 0 0 10px rgba(47, 226, 227, 0.2);
+            background-color: #243247;
+        }
+
+        /* Botones Redondeados */
+        button { 
+            background: linear-gradient(135deg, var(--cyan-neon), #00b4d8); 
+            color: #000; 
+            border: none; 
+            padding: 12px 24px; 
+            border-radius: 25px; /* Estilo Android */
+            cursor: pointer; 
+            font-size: 15px; 
+            font-weight: 700;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(47, 226, 227, 0.3);
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 6px 20px rgba(47, 226, 227, 0.5);
+        }
+        
+        button.btn-danger { 
+            background: linear-gradient(135deg, var(--danger), #cc0000); 
+            color: white; 
+            box-shadow: 0 4px 15px rgba(255, 77, 77, 0.3);
+        }
+        button.btn-danger:hover { box-shadow: 0 6px 20px rgba(255, 77, 77, 0.5); }
+        
+        button.btn-success { 
+            background: linear-gradient(135deg, var(--success), #00b35c); 
+            color: #000;
+            box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3);
+        }
+        button.btn-success:hover { box-shadow: 0 6px 20px rgba(0, 230, 118, 0.5); }
+        
+        /* Tablas Oscuras Modernas */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        th { background-color: rgba(0,0,0,0.2); color: var(--text-muted); font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
+        th:first-child { border-top-left-radius: 15px; }
+        th:last-child { border-top-right-radius: 15px; }
+        tr:hover td { background-color: rgba(47, 226, 227, 0.05); }
+        
+        a { color: var(--orange-neon); text-decoration: none; font-weight: bold; }
+        a:hover { color: #ffb373; text-decoration: underline; }
+
+        .status-activo { color: var(--success); font-weight: bold; text-shadow: 0 0 5px rgba(0,230,118,0.4); }
+        .status-bloqueado { color: var(--danger); font-weight: bold; text-shadow: 0 0 5px rgba(255,77,77,0.4); }
+        
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* Scrollbar estilizado */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--cyan-neon); }
+
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .logout-btn { top: 15px; right: 15px; padding: 8px 15px; font-size: 12px; }
+            table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
+        <img src="https://i.ibb.co/JwdbwBFW/1000293294.png" alt="ClickNegocio Logo" class="logo-img">
+        
         <h1>ClickNegocio</h1>
         <p id="sub-header">Gestión Digital de Negocios</p>
         <button id="logoutBtn" class="logout-btn" onclick="logout()">Cerrar Sesión</button>
@@ -52,14 +215,14 @@
             <h2>Iniciar Sesión</h2>
             <form id="loginForm">
                 <div class="form-group">
-                    <label>Usuario:</label>
+                    <label>Usuario</label>
                     <input type="text" id="loginUser" required placeholder="Tu usuario" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label>Contraseña:</label>
+                    <label>Contraseña</label>
                     <input type="password" id="loginPass" required placeholder="Tu contraseña" autocomplete="off">
                 </div>
-                <button type="submit" style="width: 100%;">Ingresar al Sistema</button>
+                <button type="submit" style="width: 100%; margin-top: 10px;">Ingresar al Sistema</button>
             </form>
         </div>
 
@@ -70,19 +233,19 @@
                     <form id="vendedorForm">
                         <input type="hidden" id="editVendedorIdx">
                         <div class="form-group">
-                            <label>Nombre Completo:</label>
+                            <label>Nombre Completo</label>
                             <input type="text" id="vendNombre" required>
                         </div>
                         <div class="form-group">
-                            <label>Usuario de Acceso:</label>
+                            <label>Usuario de Acceso</label>
                             <input type="text" id="vendUser" required>
                         </div>
                         <div class="form-group">
-                            <label>Contraseña:</label>
+                            <label>Contraseña</label>
                             <input type="text" id="vendPass" required>
                         </div>
                         <button type="submit" class="btn-success" id="btnGuardarVend">Crear Vendedor</button>
-                        <button type="button" id="btnCancelarEdicion" style="display:none;" onclick="cancelarEdicionVend()">Cancelar</button>
+                        <button type="button" id="btnCancelarEdicion" style="display:none; background: #555; color: white;" onclick="cancelarEdicionVend()">Cancelar</button>
                     </form>
                 </div>
 
@@ -123,55 +286,65 @@
 
         <div id="screen-vendedor" class="screen">
             <div class="panel-block">
-                <h2>Registrar Nuevo Cliente</h2>
+                <h2>Registrar / Editar Cliente</h2>
                 <form id="clienteForm">
+                    <input type="hidden" id="editClienteIdx">
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Nombre del Cliente:</label>
+                            <label>Nombre del Cliente</label>
                             <input type="text" id="cliNombre" required>
                         </div>
                         <div class="form-group">
-                            <label>Nombre del Restaurante / Negocio:</label>
+                            <label>Nombre del Restaurante / Negocio</label>
                             <input type="text" id="cliRestaurante" required>
                         </div>
                     </div>
                     <div class="grid-2">
                         <div class="form-group">
-                            <label>Fecha de Programación (Alta):</label>
+                            <label>Fecha de Programación (Alta)</label>
                             <input type="date" id="cliFechaProg" required>
                         </div>
                         <div class="form-group">
-                            <label>Fecha de Caducidad del Código:</label>
+                            <label>Fecha de Caducidad del Código</label>
                             <input type="date" id="cliFechaCaducidad" required>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>URL del Negocio del Cliente:</label>
+                        <label>URL del Negocio del Cliente</label>
                         <input type="url" id="cliUrl" required placeholder="https://clicknegocio.netlify.app/tu-cliente">
                     </div>
                     <div class="form-group">
-                        <label>Notas adicionales:</label>
+                        <label>Notas adicionales</label>
                         <textarea id="cliNotas" rows="2"></textarea>
                     </div>
-                    <button type="submit" class="btn-success">Guardar Cliente</button>
+                    <button type="submit" class="btn-success" id="btnGuardarCliente" style="width: 100%; margin-top: 10px;">Guardar Cliente</button>
+                    <button type="button" id="btnCancelarEdicionCli" style="display:none; width: 100%; margin-top: 10px; background: #555; color: white;" onclick="cancelarEdicionCli()">Cancelar Edición</button>
                 </form>
             </div>
 
             <div class="panel-block">
                 <h2>Mis Clientes Registrados</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Restaurante/Negocio</th>
-                            <th>Fecha Alta</th>
-                            <th>Caducidad</th>
-                            <th>URL</th>
-                            <th>Notas</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaClientesVendedor"></tbody>
-                </table>
+                
+                <button id="btnTriggerClientes" onclick="toggleTablaClientes()" style="width: 100%; margin-bottom: 15px; font-size: 16px; background: linear-gradient(135deg, var(--orange-neon), #ffb373); color: #000;">
+                    Mis Clientes
+                </button>
+
+                <div id="contenedorTablaClientes" style="display: none;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Restaurante/Negocio</th>
+                                <th>Fecha Alta</th>
+                                <th>Caducidad</th>
+                                <th>URL</th>
+                                <th>Notas</th>
+                                <th style="width: 150px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaClientesVendedor"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -304,8 +477,8 @@
             tbodyVend.innerHTML = '';
             db.vendedores.forEach((v, idx) => {
                 const btnBloqueo = v.estado === 'activo' ? 
-                    `<button class="btn-danger" onclick="cambiarEstadoVendedor(${idx}, 'bloqueado')">Bloquear</button>` : 
-                    `<button class="btn-success" onclick="cambiarEstadoVendedor(${idx}, 'activo')">Habilitar</button>`;
+                    `<button class="btn-danger" style="margin-left:5px; padding: 8px 12px; font-size: 13px;" onclick="cambiarEstadoVendedor(${idx}, 'bloqueado')">Bloquear</button>` : 
+                    `<button class="btn-success" style="margin-left:5px; padding: 8px 12px; font-size: 13px;" onclick="cambiarEstadoVendedor(${idx}, 'activo')">Habilitar</button>`;
 
                 tbodyVend.innerHTML += `
                     <tr>
@@ -313,7 +486,7 @@
                         <td>${v.usuario}</td>
                         <td class="status-${v.estado}">${v.estado.toUpperCase()}</td>
                         <td>
-                            <button onclick="prepararEdicionVend(${idx})">Editar</button>
+                            <button style="padding: 8px 12px; font-size: 13px;" onclick="prepararEdicionVend(${idx})">Editar</button>
                             ${btnBloqueo}
                         </td>
                     </tr>
@@ -331,7 +504,7 @@
                         <td>${c.programacion}</td>
                         <td>${c.caducidad}</td>
                         <td><a href="${c.url}" target="_blank">Ver Web</a></td>
-                        <td>${c.notes || '-'}</td>
+                        <td>${c.notas || '-'}</td>
                     </tr>
                 `;
             });
@@ -386,31 +559,89 @@
             cargarPanelAdmin();
         }
 
-        // INTERFAZ FILTRADA DE VENDEDOR
+        // ===================================================================
+        // INTERFAZ FILTRADA DE VENDEDOR Y GESTIÓN DE SUS CLIENTES
+        // ===================================================================
         function cargarPanelVendedor() {
             const tbody = document.getElementById('tablaClientesVendedor');
             tbody.innerHTML = '';
             
-            // FILTRO ESTRICTO: Solo jala clientes asignados al usuario de la sesión activa
-            const misClientes = db.clientes.filter(c => c.vendedor === usuarioLogueado);
+            // Buscar nombre del vendedor actual para el botón disparador
+            const vendedorData = db.vendedores.find(v => v.usuario === usuarioLogueado);
+            const nombreMostrar = vendedorData ? vendedorData.nombre : usuarioLogueado;
+            document.getElementById('btnTriggerClientes').innerText = `Gestión de clientes de: ${nombreMostrar} ⬇️`;
 
-            misClientes.forEach(c => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${c.cliente}</td>
-                        <td>${c.restaurante}</td>
-                        <td>${c.programacion}</td>
-                        <td>${c.caducidad}</td>
-                        <td><a href="${c.url}" target="_blank">Ver Web</a></td>
-                        <td>${c.notas || '-'}</td>
-                    </tr>
-                `;
+            // Rellenar tabla
+            db.clientes.forEach((c, idx) => {
+                if (c.vendedor === usuarioLogueado) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${c.cliente}</td>
+                            <td>${c.restaurante}</td>
+                            <td>${c.programacion}</td>
+                            <td>${c.caducidad}</td>
+                            <td><a href="${c.url}" target="_blank">Ver Web</a></td>
+                            <td>${c.notas || '-'}</td>
+                            <td>
+                                <button style="padding: 6px 10px; font-size: 12px; margin-bottom: 5px; width: 100%;" onclick="prepararEdicionCli(${idx})">Editar</button>
+                                <button class="btn-danger" style="padding: 6px 10px; font-size: 12px; width: 100%;" onclick="borrarCliente(${idx})">Borrar</button>
+                            </td>
+                        </tr>
+                    `;
+                }
             });
+        }
+
+        // Función para ocultar/mostrar tabla de clientes
+        function toggleTablaClientes() {
+            const contenedor = document.getElementById('contenedorTablaClientes');
+            if (contenedor.style.display === 'none') {
+                contenedor.style.display = 'block';
+            } else {
+                contenedor.style.display = 'none';
+            }
+        }
+
+        // Preparar formulario para editar
+        function prepararEdicionCli(idx) {
+            const c = db.clientes[idx];
+            document.getElementById('editClienteIdx').value = idx;
+            document.getElementById('cliNombre').value = c.cliente;
+            document.getElementById('cliRestaurante').value = c.restaurante;
+            document.getElementById('cliFechaProg').value = c.programacion;
+            document.getElementById('cliFechaCaducidad').value = c.caducidad;
+            document.getElementById('cliUrl').value = c.url;
+            document.getElementById('cliNotas').value = c.notas || '';
+            
+            document.getElementById('btnGuardarCliente').innerText = "Actualizar Cliente";
+            document.getElementById('btnCancelarEdicionCli').style.display = "block";
+            
+            // Hacer scroll hacia arriba opcionalmente
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Cancelar edición de cliente
+        function cancelarEdicionCli() {
+            document.getElementById('clienteForm').reset();
+            document.getElementById('editClienteIdx').value = "";
+            document.getElementById('btnGuardarCliente').innerText = "Guardar Cliente";
+            document.getElementById('btnCancelarEdicionCli').style.display = "none";
+        }
+
+        // Borrar cliente con confirmación
+        async function borrarCliente(idx) {
+            if (confirm('¿Estás seguro que quieres borrar este cliente? Esta acción no se puede deshacer.')) {
+                db.clientes.splice(idx, 1);
+                await subirDB();
+                cargarPanelVendedor();
+            }
         }
 
         document.getElementById('clienteForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nuevoCliente = {
+            const idx = document.getElementById('editClienteIdx').value;
+
+            const datosCliente = {
                 vendedor: usuarioLogueado,
                 cliente: document.getElementById('cliNombre').value,
                 restaurante: document.getElementById('cliRestaurante').value,
@@ -420,11 +651,17 @@
                 notas: document.getElementById('cliNotas').value
             };
 
-            db.clientes.push(nuevoCliente);
+            if (idx === "") {
+                db.clientes.push(datosCliente);
+                alert('Cliente asignado correctamente.');
+            } else {
+                db.clientes[idx] = datosCliente;
+                alert('Cliente actualizado correctamente.');
+            }
+            
             await subirDB();
-            document.getElementById('clienteForm').reset();
+            cancelarEdicionCli();
             cargarPanelVendedor();
-            alert('Cliente asignado correctamente.');
         });
     </script>
 </body>
