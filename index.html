@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClickNegocio - Sistema de Control</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; margin: 0; padding: 0; user-select: none; }
+        .header { background-color: #2c3e50; color: white; padding: 15px; text-align: center; position: relative; }
+        .logout-btn { position: absolute; right: 20px; top: 25px; background: #e74c3c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; display: none; }
+        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
+        
+        /* Pantalla de Login */
+        .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* Paneles (Ocultos por defecto) */
+        .screen { display: none; }
+        .active-screen { display: block; }
+        
+        /* Estilos de Formularios y Tablas */
+        .panel-block { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input, textarea, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background-color: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 16px; }
+        button:hover { background-color: #2980b9; }
+        button.btn-danger { background-color: #e74c3c; }
+        button.btn-danger:hover { background-color: #c0392b; }
+        button.btn-success { background-color: #27ae60; }
+        button.btn-success:hover { background-color: #219150; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #f2f2f2; }
+        
+        .status-activo { color: #27ae60; font-weight: bold; }
+        .status-bloqueado { color: #e74c3c; font-weight: bold; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ClickNegocio</h1>
+        <p id="sub-header">Gestión Digital de Negocios</p>
+        <button id="logoutBtn" class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <div class="container">
+
+        <div id="screen-login" class="login-box screen active-screen">
+            <h2>Iniciar Sesión</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Usuario:</label>
+                    <input type="text" id="loginUser" required placeholder="Tu usuario" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" id="loginPass" required placeholder="Tu contraseña" autocomplete="off">
+                </div>
+                <button type="submit" style="width: 100%;">Ingresar al Sistema</button>
+            </form>
+        </div>
+
+        <div id="screen-admin" class="screen">
+            <div class="grid-2">
+                <div class="panel-block">
+                    <h2>Registrar / Editar Vendedor</h2>
+                    <form id="vendedorForm">
+                        <input type="hidden" id="editVendedorIdx">
+                        <div class="form-group">
+                            <label>Nombre Completo:</label>
+                            <input type="text" id="vendNombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Usuario de Acceso:</label>
+                            <input type="text" id="vendUser" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Contraseña:</label>
+                            <input type="text" id="vendPass" required>
+                        </div>
+                        <button type="submit" class="btn-success" id="btnGuardarVend">Crear Vendedor</button>
+                        <button type="button" id="btnCancelarEdicion" style="display:none;" onclick="cancelarEdicionVend()">Cancelar</button>
+                    </form>
+                </div>
+
+                <div class="panel-block">
+                    <h2>Control de Vendedores</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Usuario</th>
+                                <th>Estado</th>
+                                <th style="width: 180px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaVendedoresAdmin"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel-block">
+                <h2>Todos los Clientes en el Sistema (Vista Global)</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Vendedor</th>
+                            <th>Cliente</th>
+                            <th>Restaurante</th>
+                            <th>Alta</th>
+                            <th>Caducidad</th>
+                            <th>URL</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientesAdmin"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="screen-vendedor" class="screen">
+            <div class="panel-block">
+                <h2>Registrar Nuevo Cliente</h2>
+                <form id="clienteForm">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Nombre del Cliente:</label>
+                            <input type="text" id="cliNombre" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nombre del Restaurante / Negocio:</label>
+                            <input type="text" id="cliRestaurante" required>
+                        </div>
+                    </div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Fecha de Programación (Alta):</label>
+                            <input type="date" id="cliFechaProg" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fecha de Caducidad del Código:</label>
+                            <input type="date" id="cliFechaCaducidad" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>URL del Negocio del Cliente:</label>
+                        <input type="url" id="cliUrl" required placeholder="https://clicknegocio.netlify.app/tu-cliente">
+                    </div>
+                    <div class="form-group">
+                        <label>Notas adicionales:</label>
+                        <textarea id="cliNotas" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="btn-success">Guardar Cliente</button>
+                </form>
+            </div>
+
+            <div class="panel-block">
+                <h2>Mis Clientes Registrados</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Restaurante/Negocio</th>
+                            <th>Fecha Alta</th>
+                            <th>Caducidad</th>
+                            <th>URL</th>
+                            <th>Notas</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaClientesVendedor"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ===================================================================
+        // CAPA 1: CORTINA DE HUMO - VARIABLES FALSAS PARA DISTRAER HACKERS
+        // ===================================================================
+        const FIREBASE_DB_ENV = "production-secure-client-4a8b9c";
+        const OAUTH_TOKEN_SECRET = "Bearer live_7f8d9e0a1b2c3d4e5f6g7h8i9j0k_ADMIN_ROOT";
+        const CRYPTO_SALT_KEY = "z8x7c6v5b4n3m2l1k0j9h8g7f6e5d4c3b2a1";
+        const AWS_DYNAMODB_ENDPOINT = "https://dynamodb.us-east-1.amazonaws.com/v2/clicknegocio";
+        function verifyMasterHandshake() { return true; }
+
+        // ===================================================================
+        // CAPA 2: CREDENCIALES REALES DIRECTAS (CON CAMUFLAJE ANTI-ROBO)
+        // ===================================================================
+        const NPOINT_BIN_ID = "de39f40a1b2c3d4e5f6g"; // <-- FALSO: Para que el ratero intente usarlo y pierda el tiempo
+        const NPOINT_TOKEN = "TU_TOKEN_ID_AQUÍ";      // <-- Recuerda colocar aquí tu Token secreto de npoint
+
+        // Tu ID real de npoint reconstruido en silencio (7a5212f27c7b3e42e0cb al revés)
+        const _0x4f2a = "bc0e24e3b7c72f2125a7"; 
+        const API_URL = `https://api.npoint.io/${_0x4f2a.split('').reverse().join('')}`;
+
+        // ===================================================================
+        // CAPA 3: BLOQUEOS DE INTERFAZ (EVITAR F12 / CLICK DERECHO)
+        // ===================================================================
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Bloquea Clic Derecho
+        
+        document.onkeydown = function(e) {
+            // Bloquea F12
+            if(e.keyCode == 123) return false;
+            // Bloquea Ctrl+Shift+I (Inspeccionar)
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+            // Bloquea Ctrl+Shift+C (Seleccionar elemento)
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
+            // Bloquea Ctrl+Shift+J (Consola)
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+            // Bloquea Ctrl+U (Ver código fuente de la página)
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
+        };
+
+        // ===================================================================
+        // LÓGICA DEL SISTEMA (LOGIN, FILTROS Y BASE DE DATOS)
+        // ===================================================================
+        let db = { vendedores: [], clientes: [] };
+        let usuarioLogueado = null;
+        let rolLogueado = null;
+
+        async function descargarDB() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                if (data.vendedores) db.vendedores = data.vendedores;
+                if (data.clientes) db.clientes = data.clientes;
+            } catch (e) {
+                console.error("Critical: Sync Error.");
+            }
+        }
+
+        async function subirDB() {
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${NPOINT_TOKEN}`
+                    },
+                    body: JSON.stringify(db)
+                });
+            } catch (e) {
+                alert("Error de sincronización con el servidor remoto.");
+            }
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userInput = document.getElementById('loginUser').value.trim();
+            const passInput = document.getElementById('loginPass').value.trim();
+
+            await descargarDB();
+
+            // Login Maestro (Tú como desarrollador)
+            if (userInput === 'firenetx26' && passInput === 'firenetx26') {
+                rolLogueado = 'admin';
+                usuarioLogueado = 'firenetx26';
+                cargarPanelAdmin();
+                cambiarPantalla('screen-admin', 'Panel Maestro de Desarrollo');
+                return;
+            }
+
+            // Login Vendedores
+            const vendedor = db.vendedores.find(v => v.usuario === userInput && v.contrasena === passInput);
+            
+            if (vendedor) {
+                if (vendedor.estado === 'bloqueado') {
+                    alert('Acceso revocado por administración.');
+                    return;
+                }
+                rolLogueado = 'vendedor';
+                usuarioLogueado = vendedor.usuario;
+                cargarPanelVendedor();
+                cambiarPantalla('screen-vendedor', `Panel de Vendedor: ${vendedor.nombre}`);
+            } else {
+                alert('Credenciales inválidas.');
+            }
+        });
+
+        function cambiarPantalla(screenId, subheaderText) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+            document.getElementById('sub-header').innerText = subheaderText;
+            document.getElementById('logoutBtn').style.display = 'block';
+            document.getElementById('loginForm').reset();
+        }
+
+        function logout() {
+            rolLogueado = null;
+            usuarioLogueado = null;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById('screen-login').classList.add('active-screen');
+            document.getElementById('sub-header').innerText = "Gestión Digital de Negocios";
+            document.getElementById('logoutBtn').style.display = 'none';
+        }
+
+        // CONTROL DE DESARROLLADOR
+        function cargarPanelAdmin() {
+            const tbodyVend = document.getElementById('tablaVendedoresAdmin');
+            tbodyVend.innerHTML = '';
+            db.vendedores.forEach((v, idx) => {
+                const btnBloqueo = v.estado === 'activo' ? 
+                    `<button class="btn-danger" onclick="cambiarEstadoVendedor(${idx}, 'bloqueado')">Bloquear</button>` : 
+                    `<button class="btn-success" onclick="cambiarEstadoVendedor(${idx}, 'activo')">Habilitar</button>`;
+
+                tbodyVend.innerHTML += `
+                    <tr>
+                        <td>${v.nombre}</td>
+                        <td>${v.usuario}</td>
+                        <td class="status-${v.estado}">${v.estado.toUpperCase()}</td>
+                        <td>
+                            <button onclick="prepararEdicionVend(${idx})">Editar</button>
+                            ${btnBloqueo}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            const tbodyCli = document.getElementById('tablaClientesAdmin');
+            tbodyCli.innerHTML = '';
+            db.clientes.forEach(c => {
+                tbodyCli.innerHTML += `
+                    <tr>
+                        <td><strong>${c.vendedor}</strong></td>
+                        <td>${c.cliente}</td>
+                        <td>${c.restaurante}</td>
+                        <td>${c.programacion}</td>
+                        <td>${c.caducidad}</td>
+                        <td><a href="${c.url}" target="_blank">Ver Web</a></td>
+                        <td>${c.notes || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('vendedorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const idx = document.getElementById('editVendedorIdx').value;
+            const nuevoVend = {
+                nombre: document.getElementById('vendNombre').value,
+                usuario: document.getElementById('vendUser').value.trim(),
+                contrasena: document.getElementById('vendPass').value.trim(),
+                estado: idx !== "" ? db.vendedores[idx].estado : 'activo'
+            };
+
+            if (idx === "") {
+                if (db.vendedores.some(v => v.usuario === nuevoVend.usuario) || nuevoVend.usuario === 'firenetx26') {
+                    alert('Este usuario ya está en uso.');
+                    return;
+                }
+                db.vendedores.push(nuevoVend);
+            } else {
+                db.vendedores[idx] = nuevoVend;
+            }
+
+            await subirDB();
+            cancelarEdicionVend();
+            cargarPanelAdmin();
+            alert('Cambios guardados en la base de datos.');
+        });
+
+        function prepararEdicionVend(idx) {
+            const v = db.vendedores[idx];
+            document.getElementById('editVendedorIdx').value = idx;
+            document.getElementById('vendNombre').value = v.nombre;
+            document.getElementById('vendUser').value = v.usuario;
+            document.getElementById('vendPass').value = v.contrasena;
+            document.getElementById('btnGuardarVend').innerText = "Actualizar Vendedor";
+            document.getElementById('btnCancelarEdicion').style.display = "inline-block";
+        }
+
+        function cancelarEdicionVend() {
+            document.getElementById('vendedorForm').reset();
+            document.getElementById('editVendedorIdx').value = "";
+            document.getElementById('btnGuardarVend').innerText = "Crear Vendedor";
+            document.getElementById('btnCancelarEdicion').style.display = "none";
+        }
+
+        async function cambiarEstadoVendedor(idx, nuevoEstado) {
+            db.vendedores[idx].estado = nuevoEstado;
+            await subirDB();
+            cargarPanelAdmin();
+        }
+
+        // INTERFAZ FILTRADA DE VENDEDOR
+        function cargarPanelVendedor() {
+            const tbody = document.getElementById('tablaClientesVendedor');
+            tbody.innerHTML = '';
+            
+            // FILTRO ESTRICTO: Solo jala clientes asignados al usuario de la sesión activa
+            const misClientes = db.clientes.filter(c => c.vendedor === usuarioLogueado);
+
+            misClientes.forEach(c => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${c.cliente}</td>
+                        <td>${c.restaurante}</td>
+                        <td>${c.programacion}</td>
+                        <td>${c.caducidad}</td>
+                        <td><a href="${c.url}" target="_blank">Ver Web</a></td>
+                        <td>${c.notas || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        document.getElementById('clienteForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nuevoCliente = {
+                vendedor: usuarioLogueado,
+                cliente: document.getElementById('cliNombre').value,
+                restaurante: document.getElementById('cliRestaurante').value,
+                programacion: document.getElementById('cliFechaProg').value,
+                caducidad: document.getElementById('cliFechaCaducidad').value,
+                url: document.getElementById('cliUrl').value,
+                notas: document.getElementById('cliNotas').value
+            };
+
+            db.clientes.push(nuevoCliente);
+            await subirDB();
+            document.getElementById('clienteForm').reset();
+            cargarPanelVendedor();
+            alert('Cliente asignado correctamente.');
+        });
+    </script>
+</body>
+</html>
